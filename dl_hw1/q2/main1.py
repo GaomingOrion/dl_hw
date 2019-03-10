@@ -11,8 +11,8 @@ params = {
     'weight_init': tf.contrib.layers.xavier_initializer(),
     'bias_init': tf.zeros_initializer(),
     'reg': None,
-    'optimizer': tf.train.GradientDescentOptimizer(1),
-    'epochs': 200
+    'optimizer': tf.train.GradientDescentOptimizer(0.5),
+    'epochs': 500
 }
 
 # load data

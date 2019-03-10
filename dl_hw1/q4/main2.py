@@ -11,8 +11,8 @@ params = {
     'weight_init': tf.contrib.layers.xavier_initializer(),
     'bias_init': tf.zeros_initializer(),
     'reg': None,
-    'optimizer': tf.train.AdamOptimizer(),
-    'epochs': 200
+    'optimizer': tf.train.AdamOptimizer(1e-4),
+    'epochs': 50
 }
 
 # load data

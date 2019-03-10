@@ -12,7 +12,7 @@ params = {
     'bias_init': tf.zeros_initializer(),
     'reg': None,
     'optimizer': tf.train.GradientDescentOptimizer(2e-3),
-    'epochs': 200
+    'epochs': 150
 }
 
 # load data

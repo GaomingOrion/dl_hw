@@ -11,8 +11,8 @@ params = {
     'weight_init': tf.contrib.layers.xavier_initializer(),
     'bias_init': tf.zeros_initializer(),
     'reg': None,
-    'optimizer': tf.train.MomentumOptimizer(learning_rate=2e-3, momentum=0.9, use_nesterov=True),
-    'epochs': 200
+    'optimizer': tf.train.MomentumOptimizer(learning_rate=1e-3, momentum=0.9, use_nesterov=True),
+    'epochs': 50
 }
 
 # load data
