@@ -2,12 +2,12 @@ import tensorflow as tf
 import numpy as np
 
 
-class Model:
+class BaseModel:
     def __init__(self, params):
         self.weight_init = params['weight_init']
         self.bias_init = params['bias_init']
         self.reg = params['reg']
-        self.lr = params['lr']
+        self.optimizer = params['optimizer']
         self.epochs = params['epochs']
 
     def _fc_layer(self, name, inp, units, dropout=None):
@@ -25,10 +25,10 @@ class Model:
 
     def _graph_kernel(self, inp):
         x = self._fc_layer(name='fc1', inp=inp, units=2000)
-        x = tf.nn.tanh(x, name='ac1')
+        x = tf.nn.relu(x, name='ac1')
         x = self._fc_layer(name='fc2', inp=x, units=1000)
-        x = tf.nn.tanh(x, name='ac2')
-        logits = self._fc_layer(name='fc3', inp=x, units=10)
+        x = tf.nn.relu(x, name='ac2')
+        logits = self._fc_layer(name='fc_final', inp=x, units=10)
         return logits
 
     def build_graph(self):
@@ -47,19 +47,22 @@ class Model:
             loss_reg = tf.constant(0.0)
         loss = tf.losses.softmax_cross_entropy(label_onehot, logits) + loss_reg
 
-        opt = tf.train.GradientDescentOptimizer(self.lr)
+        opt = self.optimizer
         train_op = opt.minimize(loss)
 
         placeholders = {'data': data, 'label': label}
         return placeholders, preds, loss, train_op
 
 
-    def train(self, data_gnr, batch_size, xdev, ydev):
+    def train(self, data_gnr, batch_size, logpath, dev=None):
         placeholders, preds, loss, train_op = self.build_graph()
+
+        if dev is not None:
+            xdev, ydev = dev
 
         # tensorborad
         tf.summary.scalar('loss', loss)
-        writer = tf.summary.FileWriter('./logs', tf.get_default_graph())
+        writer = tf.summary.FileWriter(logpath, tf.get_default_graph())
         merged = tf.summary.merge_all()
 
         global_cnt = 0
@@ -74,11 +77,12 @@ class Model:
                     writer.add_summary(summary, global_cnt*batch_size)
 
                 total_true = 0
-                for i in range(100):
-                    feed_dict = {placeholders['data']: xdev[100*i:100*(i+1)]}
-                    preds_value = sess.run(preds, feed_dict=feed_dict)
-                    #print(preds_value, ydev[100*i:100*(i+1)])
-                    total_true += np.sum(np.argmax(preds_value, axis=1) == ydev[100*i:100*(i+1)])
+                if dev:
+                    for i in range(100):
+                        feed_dict = {placeholders['data']: xdev[100*i:100*(i+1)]}
+                        preds_value = sess.run(preds, feed_dict=feed_dict)
+                        #print(preds_value, ydev[100*i:100*(i+1)])
+                        total_true += np.sum(np.argmax(preds_value, axis=1) == ydev[100*i:100*(i+1)])
                 acc = total_true/10000
                 print(
                     "e:{},".format(epoch),
