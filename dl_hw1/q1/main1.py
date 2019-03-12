@@ -38,7 +38,7 @@ minibatch_size = 64
 data_gnr = lambda: common.mini_batch_gnr(n, minibatch_size, data, labels)
 
 def main():
-    model = BaseModel(params)
+    model = Model(params)
     model.train(data_gnr, minibatch_size, logpath='./logs/1', dev=(xdev, ydev))
 
 
