@@ -10,7 +10,7 @@ import tensorflow as tf
 import numpy
 
 
-class WhiteCNN(object):
+class CNN(object):
 
     def __init__(self, dtype="fp32", scope_name="", is_inference=False,
                  lr=[1e-5, 2e-2], lr_decay=2000, grad_clip=5):
@@ -27,11 +27,9 @@ class WhiteCNN(object):
 
         # Hyper-parameters
         self.K = 24  # Conv-1 depth
-        self.stride1 = 1  # Conv-1 stride
+        self.stride1 = 2  # Conv-1 stride
         self.L = 48  # Conv-2 depth
         self.stride2 = 2  # Conv-2 stride
-        self.M = 64  # Conv-3 depth
-        self.stride3 = 3  # Conv-3 stride
         self.N = 200  # FC width
         self.min_lr = lr[0]  # Minimum learning rate
         self.max_lr = lr[1]  # Maximum learning rate
@@ -84,12 +82,8 @@ class WhiteCNN(object):
         self.W2 = tf.Variable(tf.truncated_normal([5, 5, self.K, self.L],
                                                     stddev=0.1, dtype=self.dtype))
         self.B2 = tf.Variable(tf.constant(0.1, self.dtype, [self.L]))
-        # Conv-3 weights
-        self.W3 = tf.Variable(tf.truncated_normal([4, 4, self.L, self.M],
-                                                    stddev=0.1, dtype=self.dtype))
-        self.B3 = tf.Variable(tf.constant(0.1, self.dtype, [self.M]))
         # FC weights
-        self.W4 = tf.Variable(tf.truncated_normal([5 * 5 * self.M, self.N],
+        self.W4 = tf.Variable(tf.truncated_normal([7 * 7 * self.L, self.N],
                                                     stddev=0.1, dtype=self.dtype))
         self.B4 = tf.Variable(tf.constant(0.1, self.dtype, [self.N]))
         # Softmax weights
@@ -99,7 +93,7 @@ class WhiteCNN(object):
 
     def build_graph(self, X):
 
-        # output shape is 28x28
+        # output shape is 14x14x24
         Y1l = tf.nn.conv2d(X, self.W1,
                            strides=[1, self.stride1, self.stride1, 1],
                            padding='SAME')
@@ -108,7 +102,7 @@ class WhiteCNN(object):
         Y1r = tf.nn.relu(Y1bn)
         Y1 = tf.nn.dropout(Y1r, self.pkeep_conv,
                            self.compatible_convolutional_noise_shape(Y1r))
-        # output shape is 14x14
+        # output shape is 7x7x48
         Y2l = tf.nn.conv2d(Y1, self.W2,
                            strides=[1, self.stride2, self.stride2, 1],
                            padding='SAME')
@@ -117,16 +111,7 @@ class WhiteCNN(object):
         Y2r = tf.nn.relu(Y2bn)
         Y2 = tf.nn.dropout(Y2r, self.pkeep_conv,
                            self.compatible_convolutional_noise_shape(Y2r))
-        # outputshape is 5x5
-        Y3l = tf.nn.conv2d(Y2, self.W3,
-                           strides=[1, self.stride3, self.stride3, 1],
-                           padding='SAME')
-        Y3bn, update_ema3 = self.batchnorm(Y3l, self.tst, self.iter,
-                                             self.B3, convolutional=True)
-        Y3r = tf.nn.relu(Y3bn)
-        Y3 = tf.nn.dropout(Y3r, self.pkeep_conv,
-                           self.compatible_convolutional_noise_shape(Y3r))
-        YY = tf.reshape(Y3, shape=[-1, 5 * 5 * self.M])
+        YY = tf.reshape(Y2, shape=[-1, 7 * 7 * self.L])
         Y4l = tf.matmul(YY, self.W4)
         Y4bn, update_ema4 = self.batchnorm(Y4l, self.tst,
                                              self.iter, self.B4)
@@ -135,7 +120,7 @@ class WhiteCNN(object):
         Ylogits = tf.matmul(Y4, self.W5) + self.B5
         Y = tf.nn.softmax(Ylogits)
         update_ema = tf.group(update_ema1, update_ema2,
-                              update_ema3, update_ema4)
+                               update_ema4)
 
         return Ylogits, Y, update_ema
 
@@ -264,7 +249,7 @@ if __name__ == "__main__":
     from fmnist_dataset import Fashion_MNIST
 
     with tf.variable_scope("fmnist_cnn") as vs:
-        m = WhiteCNN(scope_name="fmnist_cnn", dtype="fp64")
+        m = CNN(scope_name="fmnist_cnn", dtype="fp64")
     d = Fashion_MNIST()
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
