@@ -36,6 +36,7 @@ class TaskBAttack:
         self.attack_labels = self.fmnist.test.labels[chosen_idx]        # (1000, 1)
         print("已选出1000个攻击样本")
 
+    # 核心代码， 对一张图片进行白盒攻击
     def __white_attack_one(self, target_img, target_label):
         # target_img: (1, 28, 28, 1); target_label: (1, )
         attack_img = np.copy(target_img)
@@ -49,6 +50,7 @@ class TaskBAttack:
                 return cnt, attack_img
         return None
 
+    # 核心代码， 对一张图片进行黑盒攻击
     def __black_attack_one(self, target_img, target_label):
         # target_img: (1, 28, 28, 1); target_label: (1,)
         attack_img = np.copy(target_img)
