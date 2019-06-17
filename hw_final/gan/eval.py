@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import tensorflow as tf
 import numpy as np
-from GAN import Model
+from GAN_test import Model
 from dataset import Dataset
 import cv2
 
@@ -49,4 +49,4 @@ if __name__ == '__main__':
     path = './output/'
     if not os.path.exists(path):
         os.mkdir(path)
-    eval('./tf_ckpt/UNet_v1_2-e2-mse0.0071.ckpt-2', path)
+    eval('./tf_ckpt/GAN_v1_2-e1-mse0.002769.ckpt-1', path)

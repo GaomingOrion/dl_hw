@@ -53,5 +53,6 @@ class Dataset:
             start = end
 
 if __name__ == '__main__':
-    d = Dataset('test', True)
+    d = Dataset('test', False)
+    d = Dataset('train', False)
     #d = Dataset('test', False)
