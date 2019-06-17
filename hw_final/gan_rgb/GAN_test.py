@@ -6,16 +6,15 @@ class Model:
     def __init__(self):
         self._is_training = tf.placeholder(tf.bool, shape=(), name='is_training')
         self._image_bw = tf.placeholder(tf.float32, shape=(None,)+ config.image_shape+ (1,) , name='bw')
-        self._image_ab = tf.placeholder(tf.float32, shape=(None,)+ config.image_shape+ (2,) , name='ab')
+        self._image_ab = tf.placeholder(tf.float32, shape=(None,)+ config.image_shape+ (3,) , name='ab')
         self._label = tf.placeholder(tf.int32, shape=(None, ), name='label')
-        self._alpha = tf.placeholder(tf.float32, shape=(), name='alpha')
 
         self.place_holders = {'image_bw': self._image_bw,
                               'image_ab': self._image_ab,
                               'label': self._label,
-                              'is_training': self._is_training,
-                              'alpha': self._alpha
+                              'is_training': self._is_training
                               }
+        self.smothing = 1.0
 
     def gen(self, img_bw, scope='gen'):
         with tf.variable_scope(scope):
@@ -52,7 +51,7 @@ class Model:
                         up7 = tf.concat([up7, conv1], axis=3)
                         conv7 = slim.conv2d(up7, 32, [3, 3], scope='conv7_1')
                         conv7 = slim.conv2d(conv7, 32, [3, 3], scope='conv7_2')
-                    net_out = slim.conv2d(conv7, 2, [1, 1], scope='out', activation_fn=tf.nn.tanh)
+                    net_out = slim.conv2d(conv7, 3, [1, 1], scope='out', activation_fn=tf.nn.tanh)
         return net_out
 
     def dis(self, img_bw, img_ab, scope='dis', reuse=None):
@@ -87,13 +86,13 @@ class Model:
         # logits_real = self.dis(self._image_bw, self._image_ab, 'dis', reuse=False)
         # logits_fake = self.dis(self._image_bw, gen_out, 'dis', reuse=True)
 
-        gen_ce = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_fake, labels=tf.ones_like(logits_fake)*0.9)
-        dis_real_ce = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_real, labels=tf.ones_like(logits_real)*self._alpha)
-        dis_fake_ce = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_fake, labels=tf.ones_like(logits_fake)*(1-self._alpha))
+        gen_ce = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_fake, labels=tf.ones_like(logits_fake))
+        dis_real_ce = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_real, labels=tf.ones_like(logits_real)*self.smothing)
+        dis_fake_ce = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_fake, labels=tf.ones_like(logits_fake)*0.01)
 
         dis_loss = tf.reduce_mean(tf.reduce_mean(dis_real_ce)+tf.reduce_mean(dis_fake_ce))
         gen_loss_gan = tf.reduce_mean(gen_ce)
-        gen_loss_l1 = tf.reduce_mean((self._image_ab-gen_out)**2)*100
+        gen_loss_l1 = tf.reduce_mean(tf.abs(self._image_ab-gen_out))*100
         gen_loss = gen_loss_gan + gen_loss_l1
         return gen_out, dis_loss, gen_loss
 

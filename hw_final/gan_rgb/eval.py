@@ -31,22 +31,22 @@ def eval(prev_model_path, output_path='./output/'):
             model.place_holders['is_training']: False
         })
 
-        imgs = np.concatenate([image_bw, image_ab], axis=3)
-        imgs_pred = np.concatenate([image_bw, image_ab_pred], axis=3)
-        img = np.uint8(imgs[0,:,:,:]*255)
-        img_pred = np.uint8(imgs_pred[0,:,:,:]*255)
-        bgrimg = cv2.cvtColor(img, cv2.COLOR_LAB2BGR)
-        bgrimg_pred = cv2.cvtColor(img_pred, cv2.COLOR_LAB2BGR)
+        # imgs = np.concatenate([image_bw, image_ab], axis=3)
+        # imgs_pred = np.concatenate([image_bw, image_ab_pred], axis=3)
+        # img = np.uint8(imgs[0,:,:,:]*255)
+        img_pred = np.uint8(image_ab_pred[0,:,:,:]*255)
+        # bgrimg = cv2.cvtColor(img, cv2.COLOR_LAB2BGR)
+        # bgrimg_pred = cv2.cvtColor(img_pred, cv2.COLOR_LAB2BGR)
         bwimg = np.uint8(image_bw[0]*255)
 
         label1 = flabel_dict[label[0]]
         cv2.imwrite(output_path + str(batch_idx) + '_' + label1 + '_bw.png', bwimg)
-        cv2.imwrite(output_path+str(batch_idx)+'_'+label1+'.png', bgrimg)
-        cv2.imwrite(output_path + str(batch_idx) + '_' + label1 + '_pred.png', bgrimg_pred)
+        cv2.imwrite(output_path+str(batch_idx)+'_'+label1+'.png', np.uint8(image_ab[0,:,:,:]*255))
+        cv2.imwrite(output_path + str(batch_idx) + '_' + label1 + '_pred.png', img_pred)
 
 if __name__ == '__main__':
     import os
     path = './output/'
     if not os.path.exists(path):
         os.mkdir(path)
-    eval('./tf_ckpt/GAN_v1_2-e3-mse0.003012.ckpt-3', path)
+    eval('./tf_ckpt/GAN_v1_2-e7-mse0.002397.ckpt-7', path)

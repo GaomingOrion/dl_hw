@@ -90,28 +90,25 @@ def train(prev_model_path=None):
         while epoch < config.epochs:
             epoch += 1
             for batch_idx, (image_bw, image_ab, label) in enumerate(dataset_train.one_epoch_generator()):
-                for alpha in [0.1, 0.9]:
-                    global_cnt += 1
-                    _, gen_loss_val= sess.run([gen_op, gen_loss], feed_dict={
-                        model.place_holders['image_bw']: image_bw,
-                        model.place_holders['image_ab']: image_ab,
-                        model.place_holders['label']: label,
-                        model.place_holders['is_training']: True,
-                        model.place_holders['alpha']: alpha
-                    })
-                    _, dis_loss_val = sess.run([dis_op, dis_loss], feed_dict={
-                        model.place_holders['image_bw']: image_bw,
-                        model.place_holders['image_ab']: image_ab,
-                        model.place_holders['label']: label,
-                        model.place_holders['is_training']: True,
-                        model.place_holders['alpha']: alpha
-                    })
-                    summary_writer.add_summary(
-                        tf.Summary(value=[tf.Summary.Value(tag='train_gen_loss', simple_value=gen_loss_val)]),
-                        global_cnt)
-                    summary_writer.add_summary(
-                        tf.Summary(value=[tf.Summary.Value(tag='train_dis_loss', simple_value=dis_loss_val)]),
-                        global_cnt)
+                global_cnt += 1
+                _, gen_loss_val= sess.run([gen_op, gen_loss], feed_dict={
+                    model.place_holders['image_bw']: image_bw,
+                    model.place_holders['image_ab']: image_ab,
+                    model.place_holders['label']: label,
+                    model.place_holders['is_training']: True
+                })
+                _, dis_loss_val = sess.run([dis_op, dis_loss], feed_dict={
+                    model.place_holders['image_bw']: image_bw,
+                    model.place_holders['image_ab']: image_ab,
+                    model.place_holders['label']: label,
+                    model.place_holders['is_training']: True
+                })
+                summary_writer.add_summary(
+                    tf.Summary(value=[tf.Summary.Value(tag='train_gen_loss', simple_value=gen_loss_val)]),
+                    global_cnt)
+                summary_writer.add_summary(
+                    tf.Summary(value=[tf.Summary.Value(tag='train_dis_loss', simple_value=dis_loss_val)]),
+                    global_cnt)
                 if (batch_idx+1)%config.evaluate_batch_interval == 0:
                     test_mse = evaluate(sess, dataset_test)
                     print("----Epoch-{:n}, progress:{:.2%}, evaluation results:".format(epoch,
