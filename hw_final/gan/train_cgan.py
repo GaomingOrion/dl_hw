@@ -37,7 +37,7 @@ def train(prev_model_path=None):
         gen_ops = [gen_optimizer.minimize(
             loss=loss[0], global_step=global_step, var_list=gen_vars)]
         dis_ops = [dis_optimizer.minimize(
-            loss=loss[3], global_step=global_step, var_list=dis_vars)]
+            loss=loss[4], global_step=global_step, var_list=dis_vars)]
 
 
     # evaluate on test set
@@ -107,10 +107,10 @@ def train(prev_model_path=None):
         while epoch < config.epochs:
             epoch += 1
             for batch_idx, (image_bw, image_ab, label) in enumerate(dataset_train.one_epoch_generator()):
-                alpha = 0.8 if np.random.random()>0.02 else 0.2
-                #alpha = 1.0
+                #alpha = 0.8 if np.random.random()>0.02 else 0.2
+                alpha = 1.0
                 global_cnt += 1
-                gen_loss_val= sess.run(loss[:3]+gen_ops, feed_dict={
+                gen_loss_val= sess.run(loss[:4]+gen_ops, feed_dict={
                     model.place_holders['image_bw']: image_bw,
                     model.place_holders['image_ab']: image_ab,
                     model.place_holders['label']: label,
@@ -126,25 +126,30 @@ def train(prev_model_path=None):
                 summary_writer.add_summary(
                     tf.Summary(value=[tf.Summary.Value(tag='gen_loss_reg', simple_value=gen_loss_val[2])]),
                     global_cnt)
-                if np.random.random()>0.0:
-                    dis_loss_val = sess.run(loss[3:]+dis_ops, feed_dict={
-                        model.place_holders['image_bw']: image_bw,
-                        model.place_holders['image_ab']: image_ab,
-                        model.place_holders['label']: label,
-                        model.place_holders['is_training']: True,
-                        model.place_holders['alpha']: alpha
-                    })
-                    summary_writer.add_summary(
-                        tf.Summary(value=[tf.Summary.Value(tag='dis_loss', simple_value=dis_loss_val[0])]),
-                        global_cnt)
-                    summary_writer.add_summary(
-                        tf.Summary(value=[tf.Summary.Value(tag='dis_loss_real', simple_value=dis_loss_val[1])]),
-                        global_cnt)
-                    summary_writer.add_summary(
-                        tf.Summary(value=[tf.Summary.Value(tag='dis_loss_fake', simple_value=dis_loss_val[2])]),
-                        global_cnt)
-                else:
-                    dis_loss_val = [0.0]*3
+                summary_writer.add_summary(
+                    tf.Summary(value=[tf.Summary.Value(tag='gen_loss_class', simple_value=gen_loss_val[3])]),
+                    global_cnt)
+
+                dis_loss_val = sess.run(loss[4:]+dis_ops, feed_dict={
+                    model.place_holders['image_bw']: image_bw,
+                    model.place_holders['image_ab']: image_ab,
+                    model.place_holders['label']: label,
+                    model.place_holders['is_training']: True,
+                    model.place_holders['alpha']: alpha
+                })
+                summary_writer.add_summary(
+                    tf.Summary(value=[tf.Summary.Value(tag='dis_loss', simple_value=dis_loss_val[0])]),
+                    global_cnt)
+                summary_writer.add_summary(
+                    tf.Summary(value=[tf.Summary.Value(tag='dis_loss_real', simple_value=dis_loss_val[1])]),
+                    global_cnt)
+                summary_writer.add_summary(
+                    tf.Summary(value=[tf.Summary.Value(tag='dis_loss_fake', simple_value=dis_loss_val[2])]),
+                    global_cnt)
+                summary_writer.add_summary(
+                    tf.Summary(value=[tf.Summary.Value(tag='dis_loss_class', simple_value=dis_loss_val[3])]),
+                    global_cnt)
+
                 if (batch_idx+1)%config.evaluate_batch_interval == 0:
                     test_mse = evaluate(sess, dataset_test)
                     print("----Epoch-{:n}, progress:{:.2%}, evaluation results:".format(epoch,
