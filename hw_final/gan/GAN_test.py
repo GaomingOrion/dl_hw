@@ -95,7 +95,7 @@ class Model:
 
         dis_loss = dis_real_ce + dis_fake_ce
         gen_loss_gan = tf.reduce_mean(gen_ce)
-        gen_loss_reg = tf.reduce_mean(tf.abs(self._image_ab-gen_out))*100.0
+        gen_loss_reg = tf.reduce_mean(tf.abs(self._image_ab-gen_out))*1000.0
         # gen_out_bw = tf.einsum('ijkl,lm->ijkm', gen_out,
         #                        tf.constant([0.587, 0.114, 0.299],tf.float32, [3,1]))
         # gen_loss_reg = tf.reduce_mean(tf.abs(self._image_bw-gen_out_bw))*10

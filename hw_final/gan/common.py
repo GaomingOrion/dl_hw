@@ -14,7 +14,7 @@ class Config:
     rnn_keep_prob = 0.5
     class_num = 11
 
-    epochs = 50
+    epochs = 100
     train_batch_size = 64
     test_batch_size = 64
     evaluate_batch_interval = 200
