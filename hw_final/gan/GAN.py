@@ -111,14 +111,20 @@ class Model:
 
         logits_lst = [logits_real, logits_real_class, logits_fake, logits_fake_class]
 
+        # normal GAN
         # gen_loss_gan = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_fake, labels=tf.ones_like(logits_fake)*1.0))
         # dis_loss_real = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_real, labels=tf.ones_like(logits_real)*self._alpha))
         # dis_loss_fake = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_fake, labels=tf.ones_like(logits_fake)*(1-self._alpha)))
 
-        gen_loss_gan = tf.reduce_mean((logits_fake)**2)
-        dis_loss_real = tf.reduce_mean((logits_real-self._alpha)**2)
-        dis_loss_fake = tf.reduce_mean((logits_fake+self._alpha)**2)
+        # LS-GAN
+        # gen_loss_gan = tf.reduce_mean((logits_fake)**2)
+        # dis_loss_real = tf.reduce_mean((logits_real-self._alpha)**2)
+        # dis_loss_fake = tf.reduce_mean((logits_fake+self._alpha)**2)
 
+        # WGAN
+        gen_loss_gan = -tf.reduce_mean(logits_fake)
+        dis_loss_real = -tf.reduce_mean(logits_real)
+        dis_loss_fake = tf.reduce_mean(logits_fake)
 
         dis_loss_class = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_real_class, labels=self._label_onehot)) \
                         + tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_fake_class, labels=self._label_onehot))
