@@ -60,42 +60,42 @@ class Model:
         return net_out
 
     def dis(self, img_bw, img_ab, scope='dis', reuse=None):
+        channel_lst1 = [32, 64, 128, 256]
+        channel_lst2 = [32, 64, 128, 256]
         img = tf.concat([img_bw, img_ab], axis=3)
         with tf.variable_scope(scope, reuse=reuse):
             with tf.variable_scope('conv1'):
-                with slim.arg_scope([slim.conv2d], normalizer_fn=slim.batch_norm,
-                                    normalizer_params={'is_training': self._is_training}):
-                    with slim.arg_scope([slim.conv2d], activation_fn=tf.nn.leaky_relu):
-                        conv1 = slim.conv2d(img, 32, [3, 3], scope='conv1_1')
-                        conv1 = slim.conv2d(conv1, 32, [3, 3], scope='conv1_2')
-                        pool1 = slim.avg_pool2d(conv1, [2, 2], scope='pool1')
-                        conv2 = slim.conv2d(pool1, 64, [3, 3], scope='conv2_1')
-                        conv2 = slim.conv2d(conv2, 64, [3, 3], scope='conv2_2')
-                        pool2 = slim.avg_pool2d(conv2, [2, 2], scope='pool2')
-                        conv3 = slim.conv2d(pool2, 128, [3, 3], scope='conv3_1')
-                        conv3 = slim.conv2d(conv3, 128, [3, 3], scope='conv3_2')
-                        pool3 = slim.avg_pool2d(conv3, [2, 2], scope='pool3')
-                        conv4 = slim.conv2d(pool3, 256, [3, 3], scope='conv4_1')
-                        conv4 = slim.conv2d(conv4, 256, [3, 3], scope='conv4_2')
+                with slim.arg_scope([slim.conv2d], activation_fn=tf.nn.leaky_relu):
+                    conv1 = slim.conv2d(img, channel_lst1[0], [3, 3], scope='conv1_1')
+                    conv1 = slim.conv2d(conv1, channel_lst1[0], [3, 3], scope='conv1_2')
+                    pool1 = slim.avg_pool2d(conv1, [2, 2], scope='pool1')
+                    conv2 = slim.conv2d(pool1, channel_lst1[1], [3, 3], scope='conv2_1')
+                    conv2 = slim.conv2d(conv2, channel_lst1[1], [3, 3], scope='conv2_2')
+                    pool2 = slim.avg_pool2d(conv2, [2, 2], scope='pool2')
+                    conv3 = slim.conv2d(pool2, channel_lst1[2], [3, 3], scope='conv3_1')
+                    conv3 = slim.conv2d(conv3, channel_lst1[2], [3, 3], scope='conv3_2')
+                    pool3 = slim.avg_pool2d(conv3, [2, 2], scope='pool3')
+                    conv4 = slim.conv2d(pool3, channel_lst1[3], [3, 3], scope='conv4_1')
+                    conv4 = slim.conv2d(conv4, channel_lst1[3], [3, 3], scope='conv4_2')
             fc_in = tf.layers.flatten(conv4)
             fc1 = tf.layers.dense(fc_in, 1000, activation=tf.tanh)
             logits1 = tf.layers.dense(fc1, 1)
 
             with tf.variable_scope('conv2'):
-                with slim.arg_scope([slim.conv2d], normalizer_fn=slim.batch_norm,
-                                    normalizer_params={'is_training': self._is_training}):
-                    with slim.arg_scope([slim.conv2d], activation_fn=tf.nn.leaky_relu):
-                        conv1 = slim.conv2d(img, 32, [3, 3], scope='conv1_1')
-                        conv1 = slim.conv2d(conv1, 32, [3, 3], scope='conv1_2')
-                        pool1 = slim.avg_pool2d(conv1, [2, 2], scope='pool1')
-                        conv2 = slim.conv2d(pool1, 64, [3, 3], scope='conv2_1')
-                        conv2 = slim.conv2d(conv2, 64, [3, 3], scope='conv2_2')
-                        pool2 = slim.avg_pool2d(conv2, [2, 2], scope='pool2')
-                        conv3 = slim.conv2d(pool2, 128, [3, 3], scope='conv3_1')
-                        conv3 = slim.conv2d(conv3, 128, [3, 3], scope='conv3_2')
-                        pool3 = slim.avg_pool2d(conv3, [2, 2], scope='pool3')
-                        conv4 = slim.conv2d(pool3, 256, [3, 3], scope='conv4_1')
-                        conv4 = slim.conv2d(conv4, 256, [3, 3], scope='conv4_2')
+                # with slim.arg_scope([slim.conv2d], normalizer_fn=slim.batch_norm,
+                #                     normalizer_params={'is_training': self._is_training}):
+                with slim.arg_scope([slim.conv2d], activation_fn=tf.nn.leaky_relu):
+                    conv1 = slim.conv2d(img, channel_lst2[0], [3, 3], scope='conv1_1')
+                    conv1 = slim.conv2d(conv1, channel_lst2[0], [3, 3], scope='conv1_2')
+                    pool1 = slim.avg_pool2d(conv1, [2, 2], scope='pool1')
+                    conv2 = slim.conv2d(pool1, channel_lst2[1], [3, 3], scope='conv2_1')
+                    conv2 = slim.conv2d(conv2, channel_lst2[1], [3, 3], scope='conv2_2')
+                    pool2 = slim.avg_pool2d(conv2, [2, 2], scope='pool2')
+                    conv3 = slim.conv2d(pool2, channel_lst2[2], [3, 3], scope='conv3_1')
+                    conv3 = slim.conv2d(conv3, channel_lst2[2], [3, 3], scope='conv3_2')
+                    pool3 = slim.avg_pool2d(conv3, [2, 2], scope='pool3')
+                    conv4 = slim.conv2d(pool3, channel_lst2[3], [3, 3], scope='conv4_1')
+                    conv4 = slim.conv2d(conv4, channel_lst2[3], [3, 3], scope='conv4_2')
             fc_in = tf.layers.flatten(conv4)
             fc2 = tf.layers.dense(fc_in, 1000, activation=tf.tanh)
             logits2 = tf.layers.dense(fc2, 10)
@@ -111,23 +111,25 @@ class Model:
 
         logits_lst = [logits_real, logits_real_class, logits_fake, logits_fake_class]
 
-        gen_ce = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_fake, labels=tf.ones_like(logits_fake)*1.0)
-        dis_real_ce = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_real, labels=tf.ones_like(logits_real)*self._alpha))
-        dis_fake_ce = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_fake, labels=tf.ones_like(logits_fake)*(1-self._alpha)))
+        # gen_loss_gan = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_fake, labels=tf.ones_like(logits_fake)*1.0))
+        # dis_loss_real = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_real, labels=tf.ones_like(logits_real)*self._alpha))
+        # dis_loss_fake = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_fake, labels=tf.ones_like(logits_fake)*(1-self._alpha)))
 
-        dis_loss_class = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_real_class, labels=self._label_onehot))
-        dis_loss = dis_real_ce + dis_fake_ce + dis_loss_class
-        gen_loss_gan = tf.reduce_mean(gen_ce)
+        gen_loss_gan = tf.reduce_mean((logits_fake)**2)
+        dis_loss_real = tf.reduce_mean((logits_real-self._alpha)**2)
+        dis_loss_fake = tf.reduce_mean((logits_fake+self._alpha)**2)
+
+
+        dis_loss_class = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_real_class, labels=self._label_onehot)) \
+                        + tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_fake_class, labels=self._label_onehot))
+        dis_loss = dis_loss_real + dis_loss_fake + dis_loss_class
         gen_loss_reg = tf.reduce_mean(tf.abs(self._image_ab-gen_out))*100.0
-        # gen_out_bw = tf.einsum('ijkl,lm->ijkm', gen_out,
-        #                        tf.constant([0.587, 0.114, 0.299],tf.float32, [3,1]))
-        # gen_loss_reg = tf.reduce_mean(tf.abs(self._image_bw-gen_out_bw))*10
-        #gen_loss_reg = tf.constant(0.0)
+
         gen_loss_class = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_fake_class, labels=self._label_onehot))
 
         gen_loss = gen_loss_gan + gen_loss_reg + gen_loss_class
         loss = [gen_loss, gen_loss_gan, gen_loss_reg, gen_loss_class,
-                dis_loss, dis_real_ce, dis_fake_ce, dis_loss_class]
+                dis_loss, dis_loss_real, dis_loss_fake, dis_loss_class]
         return gen_out, logits_lst, loss
 
 

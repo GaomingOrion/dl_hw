@@ -244,25 +244,26 @@ def train(epochs=20, cycle=5, prev_model_path=None, lr=0.001, prob=0.05):
     gen_out, logits_lst, loss = model.build_train_graph()
     # set optimizer
     global_step = tf.Variable(0, name='global_step', trainable=False)
-    update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
     # get dis, gen variables
     vars = tf.trainable_variables()
     gen_vars = [x for x in vars if x.name.startswith('gen/')]
     dis_vars = [x for x in vars if x.name.startswith('dis/')]
 
 
-    with tf.control_dependencies(update_ops):
-        learning_rate = tf.maximum(1e-6, tf.train.exponential_decay(
-            learning_rate=lr,
-            global_step=global_step,
-            decay_steps=200,
-            decay_rate=0.99))
+    learning_rate = tf.maximum(1e-6, tf.train.exponential_decay(
+        learning_rate=lr,
+        global_step=global_step,
+        decay_steps=200,
+        decay_rate=0.99))
+
+    with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS, scope='gen')):
         gen_optimizer = tf.train.AdamOptimizer(learning_rate)
-        dis_optimizer = tf.train.AdamOptimizer(learning_rate/10)
-        # gen_optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.01)
-        # dis_optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.01)
         gen_ops = [gen_optimizer.minimize(
             loss=loss[0], global_step=global_step, var_list=gen_vars)]
+
+
+    with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS, scope='dis')):
+        dis_optimizer = tf.train.AdamOptimizer(learning_rate/10)
         dis_ops = [dis_optimizer.minimize(
             loss=loss[4], global_step=global_step, var_list=dis_vars)]
 
@@ -352,15 +353,15 @@ def train(epochs=20, cycle=5, prev_model_path=None, lr=0.001, prob=0.05):
         while epoch < epochs:
             epoch += 1
             for batch_idx, (image_bw, image_ab, label) in enumerate(dataset_train.one_epoch_generator()):
-                alpha = 0.8 if np.random.random()>prob else 0.5
-                #alpha = 1.0
-                # print(np.mean(sess.run(logits_lst[2], feed_dict={
+                alpha = 1.0 if np.random.random()>prob else -1.0
+                # #alpha = 1.0
+                # print([np.mean(x) for x in sess.run(gen_vars, feed_dict={
                 #         model.place_holders['image_bw']: image_bw,
                 #         model.place_holders['image_ab']: image_ab,
                 #         model.place_holders['label']: label,
                 #         model.place_holders['is_training']: True,
                 #         model.place_holders['alpha']: alpha
-                #     })))
+                #     })])
                 global_cnt += 1
                 if epoch % (2*cycle) <=cycle-1:
                     gen_loss_val= sess.run(loss[:4]+gen_ops, feed_dict={
@@ -438,7 +439,7 @@ def train(epochs=20, cycle=5, prev_model_path=None, lr=0.001, prob=0.05):
                     print("--Test_classify_accuracy_of_real_image: {:.4f}".format(class_acc_real))
                     print("--Test_classify_accuracy_of_fake_image: {:.4f}\n".format(class_acc_fake))
                 else:
-                    show_path = './output2/output-e%i/' % epoch
+                    show_path = './output/output-e%i/' % epoch
                     if not os.path.exists(show_path):
                         os.mkdir(show_path)
                     show_eval(sess, dataset_test, show_path)
@@ -458,6 +459,7 @@ if __name__ == '__main__':
     #train_gen(10)
     #train_dis(10, './tf_ckpt/GAN-e1-mse0.002987.ckpt-1')
     #train_dis(10, './tf_ckpt/GAN-e2-mse0.005236.ckpt-2')
-    train(100, 3, None, 0.001, 0.1)
+    #train(100, 1,'./tf_ckpt/GAN-e1-mse1.493585.ckpt-1', 0.001, 0.0)
+    train(100, 3, None, 0.001, 0.00)
     #train(100, 1, './tf_ckpt/GAN-e7-mse0.002895.ckpt-7', 0.005, 0.05)
     exit()

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import tensorflow as tf
 import numpy as np
-from GAN_test import Model
+from GAN import Model
 from dataset import Dataset
 import cv2
 
@@ -23,6 +23,7 @@ def eval(prev_model_path, output_path='./output/'):
 
     saver.restore(sess=sess, save_path=prev_model_path)
     flabel_dict = {0:'rog', 1:'uck', 2:'eer', 3:'ile', 4:'ird', 5:'rse', 6:'hip', 7:'cat', 8:'dog', 9:'ane'}
+    tmp = []
     for batch_idx, (image_bw, image_ab, label) in enumerate(dataset_test.one_epoch_generator()):
         image_ab_pred = sess.run(net_out, feed_dict={
             model.place_holders['image_bw']: image_bw,
@@ -30,7 +31,7 @@ def eval(prev_model_path, output_path='./output/'):
             model.place_holders['label']: label,
             model.place_holders['is_training']: False
         })
-
+        tmp.append(np.mean((image_ab_pred-image_ab)**2))
         imgs = np.concatenate([image_bw, image_ab], axis=3)
         imgs_pred = np.concatenate([image_bw, image_ab_pred], axis=3)
         img = np.uint8(imgs[0,:,:,:]*255)
@@ -43,10 +44,10 @@ def eval(prev_model_path, output_path='./output/'):
         cv2.imwrite(output_path + str(batch_idx) + '_' + label1 + '_bw.png', bwimg)
         cv2.imwrite(output_path+str(batch_idx)+'_'+label1+'.png', bgrimg)
         cv2.imwrite(output_path + str(batch_idx) + '_' + label1 + '_pred.png', bgrimg_pred)
-
+    print(np.mean(tmp))
 if __name__ == '__main__':
     import os
-    path = './output/'
+    path = './output/tmp2/'
     if not os.path.exists(path):
         os.mkdir(path)
-    eval('./tf_ckpt/GAN_v1_2-e1-mse0.028902.ckpt-1', path)
+    eval('./tf_ckpt/GAN-e1-mse0.049076.ckpt-1', path)
