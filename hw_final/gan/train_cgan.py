@@ -352,7 +352,7 @@ def train(epochs=20, cycle=5, prev_model_path=None, lr=0.001, prob=0.05):
         while epoch < epochs:
             epoch += 1
             for batch_idx, (image_bw, image_ab, label) in enumerate(dataset_train.one_epoch_generator()):
-                alpha = 0.8 if np.random.random()>prob else 0.2
+                alpha = 0.8 if np.random.random()>prob else 0.5
                 #alpha = 1.0
                 # print(np.mean(sess.run(logits_lst[2], feed_dict={
                 #         model.place_holders['image_bw']: image_bw,
@@ -438,7 +438,7 @@ def train(epochs=20, cycle=5, prev_model_path=None, lr=0.001, prob=0.05):
                     print("--Test_classify_accuracy_of_real_image: {:.4f}".format(class_acc_real))
                     print("--Test_classify_accuracy_of_fake_image: {:.4f}\n".format(class_acc_fake))
                 else:
-                    show_path = './output/output-e%i/' % epoch
+                    show_path = './output2/output-e%i/' % epoch
                     if not os.path.exists(show_path):
                         os.mkdir(show_path)
                     show_eval(sess, dataset_test, show_path)
@@ -458,6 +458,6 @@ if __name__ == '__main__':
     #train_gen(10)
     #train_dis(10, './tf_ckpt/GAN-e1-mse0.002987.ckpt-1')
     #train_dis(10, './tf_ckpt/GAN-e2-mse0.005236.ckpt-2')
-    #train(1, './tf_ckpt/GAN-e7-mse0.008097.ckpt-7')
-    train(100, 1, './tf_ckpt/GAN-e7-mse0.002895.ckpt-7', 0.005, 0.05)
+    train(100, 3, None, 0.001, 0.1)
+    #train(100, 1, './tf_ckpt/GAN-e7-mse0.002895.ckpt-7', 0.005, 0.05)
     exit()

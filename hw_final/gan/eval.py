@@ -49,4 +49,4 @@ if __name__ == '__main__':
     path = './output/'
     if not os.path.exists(path):
         os.mkdir(path)
-    eval('./tf_ckpt/GAN_v1_2-e3-mse0.003012.ckpt-3', path)
+    eval('./tf_ckpt/GAN_v1_2-e1-mse0.028902.ckpt-1', path)
